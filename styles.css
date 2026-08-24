@@ -17,6 +17,7 @@ em{font-style:normal;color:var(--accent)}
 .icon.xl{width:52px;height:52px}
 
 #starfield{position:fixed;inset:0;z-index:-1;pointer-events:none;display:block;background:radial-gradient(circle at 50% 30%,#0d1120 0%,var(--bg) 65%)}
+.scanlines{position:fixed;inset:0;z-index:900;pointer-events:none;mix-blend-mode:overlay;opacity:.5;background:repeating-linear-gradient(0deg,#ffffff14 0px,#ffffff14 1px,transparent 1px,transparent 3px)}
 
 /* nav */
 nav{height:78px;max-width:1180px;margin:auto;display:flex;align-items:center;padding:0 28px;gap:22px}
@@ -59,9 +60,9 @@ main{max-width:1180px;margin:auto;padding:20px 28px 80px;min-height:640px}
 /* welcome */
 .welcome-step{display:flex;align-items:center;gap:40px;min-height:600px;flex-wrap:wrap}
 .welcome-copy{width:50%;min-width:320px}
-.welcome-copy h1{font-size:52px;line-height:1.08;letter-spacing:-1.4px;margin:0 0 20px;font-weight:700}
+.welcome-copy h1{font-size:52px;line-height:1.08;letter-spacing:-1.4px;margin:0 0 20px;font-weight:700;text-shadow:1px 1px 0 var(--violet),2px 2px 0 var(--violet),3px 3px 0 var(--violet),4px 4px 14px #8b7bff44}
 .welcome-copy>p{max-width:480px;color:var(--muted);font-size:17px;line-height:1.6;margin:0 0 28px}
-.primary{border:0;border-radius:99px;background:var(--accent);padding:16px 22px;color:var(--accent-ink);font-weight:700;transition:.2s;box-shadow:0 12px 26px #2fd8ff2e}
+.primary{border:1px solid #ffffff55;border-radius:99px;background:var(--accent);padding:16px 22px;color:var(--accent-ink);font-weight:700;transition:.2s;box-shadow:0 0 0 3px #2fd8ff22,0 12px 30px #2fd8ff3a}
 .primary:hover{transform:translateY(-2px)}
 .primary:disabled{background:var(--surface2);color:var(--muted);box-shadow:none;cursor:not-allowed}
 .primary span{margin-left:10px}
@@ -80,37 +81,20 @@ main{max-width:1180px;margin:auto;padding:20px 28px 80px;min-height:640px}
 .const-node:hover .const-dot{border-color:var(--accent);color:var(--accent);transform:scale(1.06)}
 .const-node small{font-family:"Rajdhani",sans-serif;font-size:12px;font-weight:600;letter-spacing:.3px;color:var(--muted);text-align:center;max-width:90px}
 
-/* hub (world select) */
-.hub{padding-top:10px}
-.hub h2{font-size:34px;letter-spacing:-1px;margin:6px 0 12px}
-.hub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
-.hub-card{border:1px solid var(--border);border-radius:20px;background:linear-gradient(160deg,var(--surface),var(--bg2));padding:24px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;color:var(--text);transform-style:preserve-3d;animation:card-in .45s ease backwards;transition:border-color .18s}
-.hub-card:nth-child(1){animation-delay:.02s}
-.hub-card:nth-child(2){animation-delay:.07s}
-.hub-card:nth-child(3){animation-delay:.12s}
-.hub-card:nth-child(4){animation-delay:.17s}
-.hub-card:nth-child(5){animation-delay:.22s}
 @keyframes card-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-.hub-card:not(.done):hover{border-color:var(--violet)}
-.hub-icon{width:44px;height:44px;border-radius:14px;background:var(--surface2);display:grid;place-items:center;color:var(--violet)}
-.hub-icon .icon{width:24px;height:24px}
-.hub-card b{font-family:"Orbitron",sans-serif;font-size:14px}
-.hub-card small{color:var(--muted);font-size:12px}
-.hub-progress{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--accent);margin-top:4px}
-.hub-card.done{opacity:.55;cursor:default}
-.hub-card.done .hub-icon{background:linear-gradient(135deg,var(--accent),var(--violet));color:#001820}
-.hub-card.done .hub-progress{color:var(--magenta)}
-.hub>.primary{margin-top:28px}
 
-/* journey trail (atop the hub) */
-.trail-wrap{position:relative;width:100%;height:220px;margin:22px 0 8px}
-.trail-svg{position:absolute;inset:0;width:100%;height:100%}
-.trail-path{fill:none;stroke:var(--border);stroke-width:.6;stroke-dasharray:2 2;vector-effect:non-scaling-stroke}
-.trail-node{position:absolute;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:grid;place-items:center;color:var(--muted);z-index:1}
-.trail-node.done{background:linear-gradient(135deg,var(--accent),var(--violet));border-color:transparent;color:#001820}
-.trail-avatar{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--bg2);border:2px solid var(--pc,var(--accent));color:var(--pc,var(--accent));display:grid;place-items:center;box-shadow:0 0 16px var(--pc,var(--accent));z-index:2;animation:avatar-bob 2.2s ease-in-out infinite}
-.trail-avatar .icon{width:18px;height:18px}
-@keyframes avatar-bob{50%{transform:translate(-50%,calc(-50% - 6px))}}
+/* overworld: a real drivable 3D career-exploration world */
+.overworld-screen{padding-top:10px}
+.overworld-screen h2{font-size:34px;letter-spacing:-1px;margin:6px 0 12px}
+.overworld3d{position:relative;width:100%;aspect-ratio:16/9;max-height:520px;border:1px solid var(--border);border-radius:22px;overflow:hidden;margin-top:22px;touch-action:none;background:var(--bg)}
+.overworld3d canvas{display:block;width:100%;height:100%}
+.w3d-loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-family:"Rajdhani",sans-serif;font-size:14px}
+.w3d-prompt{position:absolute;transform:translate(-50%,-100%);background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-family:"Rajdhani",sans-serif;font-size:12px;font-weight:700;padding:5px 10px;border-radius:8px;white-space:nowrap;cursor:pointer;animation:owp-prompt-bounce 1s ease-in-out infinite;pointer-events:auto}
+@keyframes owp-prompt-bounce{50%{transform:translate(-50%,calc(-100% - 4px))}}
+.owp-controls{display:none;flex-direction:column;align-items:center;gap:6px;margin-top:16px;user-select:none}
+.owp-controls-row{display:flex;gap:36px}
+.owp-controls button{width:46px;height:46px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:18px}
+@media(pointer:coarse){.owp-controls{display:flex}}
 
 /* avatar picker */
 .avatar-step{padding-top:10px}
@@ -181,14 +165,37 @@ main{max-width:1180px;margin:auto;padding:20px 28px 80px;min-height:640px}
 .keys-hud i.won{opacity:1;filter:none;animation:key-pop .4s ease}
 @keyframes key-pop{40%{transform:scale(1.4) rotate(-10deg)}}
 
-/* choices — drag-to-confirm cards */
-.opt-grid{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
-.opt{border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);padding:15px 17px;text-align:left;font-size:14px;font-weight:600;cursor:grab;touch-action:none;user-select:none;will-change:transform;transition:border-color .18s,background .18s}
-.opt:hover{border-color:var(--violet);background:var(--surface2)}
-.opt.dragging{cursor:grabbing;z-index:5;border-color:var(--accent)}
-.opt.armed{border-color:var(--accent);box-shadow:0 0 0 3px #2fd8ff33,0 0 26px #2fd8ff55}
-.drag-hint{display:flex;align-items:center;gap:6px;color:var(--muted);font-family:"Rajdhani",sans-serif;font-size:12px;font-weight:600;letter-spacing:.3px;margin-top:14px}
-.drag-hint .icon{color:var(--violet);width:14px;height:14px}
+/* rpg-panel: shared corner-bracket window chrome */
+.rpg-panel{position:relative}
+.rpg-panel:before,.rpg-panel:after{content:"";position:absolute;width:16px;height:16px;border:2px solid var(--violet);opacity:.7;pointer-events:none}
+.rpg-panel:before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.rpg-panel:after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+
+/* dialogue box (CryptoZombies-style narrator/character scene) */
+.dialogue-box{display:flex;gap:16px;align-items:flex-start;background:linear-gradient(160deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:16px;padding:18px 20px;cursor:pointer;transition:border-color .2s;margin-bottom:16px}
+.dialogue-box:hover{border-color:var(--violet)}
+.dialogue-box.done{cursor:default}
+.dlg-portrait{flex-shrink:0;width:52px;height:52px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--pc,var(--violet));color:var(--pc,var(--violet));display:grid;place-items:center;box-shadow:0 0 14px var(--pc,var(--violet))}
+.dlg-portrait .icon{width:26px;height:26px}
+.dlg-text{flex:1;min-width:0}
+.dlg-name{font-family:"Rajdhani",sans-serif;font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px}
+.dlg-line{margin:0;font-size:15px;line-height:1.55;color:var(--text);min-height:3.3em}
+.dlg-next{display:block;text-align:right;color:var(--violet);font-size:13px;animation:dlg-bounce 1s ease-in-out infinite;transition:opacity .2s}
+@keyframes dlg-bounce{50%{transform:translateY(3px)}}
+
+.action-area{margin-top:4px;padding:8px}
+.action-area.reveal-in{animation:action-in .35s ease}
+@keyframes action-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* rpg battle-menu style choices */
+.rpg-menu{list-style:none;margin:0;padding:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface)}
+.rpg-item{position:relative;padding:14px 18px 14px 38px;font-size:14px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s,color .15s}
+.rpg-item:last-child{border-bottom:0}
+.rpg-item .cursor{position:absolute;left:14px;top:50%;transform:translate(-4px,-50%);color:var(--accent);opacity:0;transition:.15s}
+.rpg-item.active{background:var(--surface2);color:var(--accent)}
+.rpg-item.active .cursor{opacity:1;transform:translate(0,-50%)}
+.rpg-item.confirmed{background:var(--accent);color:var(--accent-ink)}
+.rpg-item.confirmed .cursor{color:var(--accent-ink);opacity:1;transform:translate(0,-50%)}
 
 /* multiselect tiles + tray */
 .tile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
