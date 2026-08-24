@@ -20,6 +20,8 @@ const ICONS = {
   'avatar-burst': '<path d="M12 2v6M12 16v6M2 12h6M16 12h6M5 5l4 4M15 15l4 4M19 5l-4 4M9 15l-4 4"/>',
   'avatar-shard': '<path d="M12 2 18 9 12 22 6 9Z"/><path d="M6 9h12M9 9 12 2M15 9 12 2"/>',
   'avatar-sun': '<circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M18.5 5.5l-1.4 1.4M6.9 17.1l-1.4 1.4"/>',
+  guide: '<path d="M12 3 4 8v3c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V8Z"/><circle cx="12" cy="11" r="2.4"/>',
+  person: '<circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/>',
 };
 const AVATARS = [
   { id: 'comet', label: 'Comet Scout', color: '#2fd8ff', iconId: 'avatar-comet' },
@@ -37,7 +39,7 @@ function icon(id, size = '') {
 /* ============ quest data (built from the domain PDF) ============ */
 const QUEST = [
   {
-    id: 'aptitude', title: 'Aptitude', tagline: 'Temple of Patterns', intro: 'Entering the Temple of Patterns…',
+    id: 'aptitude', title: 'Aptitude', tagline: 'Temple of Patterns', intro: 'Entering the Temple of Patterns…', guideName: 'The Temple Keeper', guideColor: '#8b7bff',
     steps: [
       {
         key: 'pattern-hunt', kicker: 'CHAPTER 1 · THE OLD MAP', title: 'Alien Pattern Hunt',
@@ -95,7 +97,7 @@ const QUEST = [
     ],
   },
   {
-    id: 'personality', title: 'Personality', tagline: 'Your creative hideout', intro: 'Stepping into your creative hideout…',
+    id: 'personality', title: 'Personality', tagline: 'Your creative hideout', intro: 'Stepping into your creative hideout…', guideName: 'The Architect', guideColor: '#ff4fc3',
     steps: [
       {
         key: 'workspace', kicker: 'CHAPTER 2 · MAKE IT YOURS', title: 'Design Your Dream Workspace',
@@ -137,7 +139,7 @@ const QUEST = [
     ],
   },
   {
-    id: 'interest', title: 'Career Interest', tagline: 'Mystery Object Lab', intro: 'Arriving at the Mystery Object Lab…',
+    id: 'interest', title: 'Career Interest', tagline: 'Mystery Object Lab', intro: 'Arriving at the Mystery Object Lab…', guideName: 'The Cartographer', guideColor: '#2fd8ff',
     steps: [
       {
         key: 'object-microscope', kicker: 'OBJECT 1 OF 3 · MICROSCOPE', title: 'Mystery Object',
@@ -219,7 +221,7 @@ const QUEST = [
     ],
   },
   {
-    id: 'approach', title: 'Career Approach', tagline: 'Mission Manager', intro: 'Launching Mission Manager…',
+    id: 'approach', title: 'Career Approach', tagline: 'Mission Manager', intro: 'Launching Mission Manager…', guideName: 'Mission Commander', guideColor: '#ff9a52',
     steps: [
       {
         key: 'budget', kicker: 'STAGE 1 OF 3 · MISSION MANAGER', title: 'Allocate Your Budget',
@@ -376,54 +378,6 @@ function wireTilt(el) {
   el.addEventListener('pointerleave', () => { el.style.transform = ''; });
 }
 
-function wireChoiceCard(el, onCommit) {
-  const THRESH = 64;
-  let dragging = false, moved = false, startX = 0, startY = 0, dx = 0, dy = 0;
-  el.addEventListener('pointermove', e => {
-    if (dragging) {
-      dx = e.clientX - startX; dy = e.clientY - startY;
-      if (Math.hypot(dx, dy) > 6) moved = true;
-      el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 16}deg)`;
-      el.classList.toggle('armed', Math.hypot(dx, dy) > THRESH);
-      return;
-    }
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `perspective(700px) rotateX(${-py * 6}deg) rotateY(${px * 6}deg)`;
-  });
-  el.addEventListener('pointerleave', () => { if (!dragging) el.style.transform = ''; });
-  el.addEventListener('pointerdown', e => {
-    dragging = true; moved = false; startX = e.clientX; startY = e.clientY; dx = 0; dy = 0;
-    el.setPointerCapture(e.pointerId);
-    el.style.transition = 'none';
-    el.classList.add('dragging');
-  });
-  const release = () => {
-    if (!dragging) return;
-    dragging = false;
-    el.classList.remove('dragging');
-    el.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1), opacity .22s ease';
-    const dist = Math.hypot(dx, dy);
-    if (dist > THRESH) {
-      el.classList.add('committed');
-      el.style.transform = `translate(${dx * 1.5}px, ${dy * 1.5}px) scale(.35) rotate(${dx / 10}deg)`;
-      el.style.opacity = '0';
-      setTimeout(onCommit, 210);
-    } else if (moved) {
-      el.classList.remove('armed');
-      el.style.transform = '';
-    } else {
-      el.classList.add('committed');
-      el.style.transform = 'scale(.9)';
-      el.style.opacity = '.4';
-      setTimeout(onCommit, 140);
-    }
-  };
-  el.addEventListener('pointerup', release);
-  el.addEventListener('pointercancel', release);
-}
-
 function flyToTray(sourceEl, targetEl, html) {
   const start = sourceEl.getBoundingClientRect();
   const end = targetEl.getBoundingClientRect();
@@ -482,6 +436,30 @@ function stepVisual(step) {
   }
   const domain = QUEST[state.currentDomain];
   return `<div class="scene-card icon-card">${icon(domain.id, 'xl')}<p>${domain.tagline}</p></div>`;
+}
+
+/* ============ dialogue: speaker portraits + typewriter ============ */
+function speakerFor(step) {
+  if (step.speaker === 'riya') return { name: 'Riya', iconId: 'person', color: '#ff9a52' };
+  if (step.speaker === 'friend') return { name: 'Your Friend', iconId: 'person', color: '#2fd8ff' };
+  const domain = QUEST[state.currentDomain];
+  return { name: domain.guideName || 'The Guide', iconId: 'guide', color: domain.guideColor || '#8b7bff' };
+}
+
+let activeKeyHandler = null;
+function clearActiveKeyHandler() {
+  if (activeKeyHandler) { document.removeEventListener('keydown', activeKeyHandler); activeKeyHandler = null; }
+}
+
+function typewriter(el, text, onDone) {
+  let i = 0;
+  el.textContent = '';
+  const timer = setInterval(() => {
+    el.textContent += text[i];
+    i++;
+    if (i >= text.length) { clearInterval(timer); onDone && onDone(); }
+  }, 16);
+  return () => { clearInterval(timer); el.textContent = text; onDone && onDone(); };
 }
 
 /* ============ constellation (hybrid HTML + line-svg, no more invisible icons) ============ */
@@ -547,53 +525,51 @@ function renderIntro(domain) {
   </section>`;
 }
 
-/* ============ render: journey trail (used atop the hub) ============ */
-function journeyTrail() {
-  const positions = [{ x: 8, y: 60 }, { x: 27, y: 16 }, { x: 50, y: 64 }, { x: 73, y: 16 }, { x: 92, y: 60 }];
-  const pathD = 'M ' + positions.map(p => `${p.x} ${p.y}`).join(' L ');
-  const firstNotDone = QUEST.findIndex((d, i) => !isDomainDone(i));
-  const markerAt = positions[firstNotDone === -1 ? positions.length - 1 : firstNotDone];
-  const nodes = QUEST.map((d, i) => `
-    <div class="trail-node ${isDomainDone(i) ? 'done' : ''}" style="left:${positions[i].x}%;top:${positions[i].y}%">
-      <span>${icon(d.id, 'md')}</span>
-    </div>`).join('');
-  return `<div class="trail-wrap">
-    <svg viewBox="0 0 100 76" preserveAspectRatio="none" class="trail-svg"><path class="trail-path" d="${pathD}"/></svg>
-    ${nodes}
-    <div class="trail-avatar" style="left:${markerAt.x}%;top:${markerAt.y}%;--pc:${state.avatar.color}">${icon(state.avatar.iconId, 'md')}</div>
-  </div>`;
-}
+/* ============ overworld: a real drivable 3D career-exploration world ============ */
+function stopOverworld() { window.QuestWorld3D?.unmount(); }
 
-/* ============ render: hub ============ */
-function renderHub() {
+function renderOverworld() {
   const remaining = QUEST.filter((d, i) => !isDomainDone(i)).length;
-  return `<section class="hub">
-    <p class="eyebrow">CHOOSE YOUR WORLD</p>
-    <h2>Five worlds. <em>Play them in any order.</em></h2>
-    <p class="step-copy">${allDomainsDone() ? 'Every world is complete — your report is ready.' : `${remaining} world${remaining === 1 ? '' : 's'} left to explore.`}</p>
-    ${journeyTrail()}
-    <div class="hub-grid">
-      ${QUEST.map((d, i) => {
-        const done = isDomainDone(i);
-        const stepsDone = domainStepsDone(i);
-        return `<button class="hub-card ${done ? 'done' : ''}" data-domain="${i}" ${done ? 'disabled' : ''}>
-          <span class="hub-icon">${icon(d.id, 'lg')}</span>
-          <b>${d.title}</b>
-          <small>${d.tagline}</small>
-          <span class="hub-progress">${done ? '✓ Complete' : `${stepsDone} of ${d.steps.length}`}</span>
-        </button>`;
-      }).join('')}
+  return `<section class="overworld-screen">
+    <p class="eyebrow">EXPLORE YOUR CAREER GALAXY</p>
+    <h2>Drive to a world <em>to start exploring.</em></h2>
+    <p class="step-copy">${allDomainsDone() ? 'Every world explored — your report is ready.' : `${remaining} world${remaining === 1 ? '' : 's'} left. Arrow keys / WASD to drive, Enter to go in.`}</p>
+    <div class="overworld3d" id="overworld3d"><p class="w3d-loading">Loading 3D world…</p></div>
+    <div class="owp-controls" id="owpControls">
+      <button type="button" data-dir="up">▲</button>
+      <div class="owp-controls-row">
+        <button type="button" data-dir="left">◀</button>
+        <button type="button" data-dir="down">▼</button>
+        <button type="button" data-dir="right">▶</button>
+      </div>
     </div>
     ${allDomainsDone() ? `<button class="primary" id="see-report">See your explorer report <span>→</span></button>` : ''}
   </section>`;
+}
+
+function mountWorld3D(attemptsLeft = 40) {
+  const container = $('#overworld3d');
+  if (!container || state.view !== 'hub') return;
+  if (!window.QuestWorld3D) {
+    if (attemptsLeft <= 0) { container.innerHTML = '<p class="w3d-loading">3D world failed to load — check your connection and refresh.</p>'; return; }
+    setTimeout(() => mountWorld3D(attemptsLeft - 1), 150);
+    return;
+  }
+  container.innerHTML = '';
+  const domainColors = { aptitude: '#8b7bff', personality: '#ff4fc3', interest: '#2fd8ff', ei: '#ff6f91', approach: '#ff9a52' };
+  const domains = QUEST.map((d, i) => ({ title: d.title, done: isDomainDone(i), colorHex: domainColors[d.id] }));
+  window.QuestWorld3D.mount(container, {
+    avatarColorHex: state.avatar.color,
+    domains,
+    onEnter: i => enterDomain(i),
+  });
 }
 
 /* ============ render: a quest step ============ */
 function renderStep(step) {
   let body = '';
   if (step.type === 'choice') {
-    body = `<div class="opt-grid">${step.options.map((o, i) => `<button class="opt" data-i="${i}"><b>${o.label}</b></button>`).join('')}</div>
-    <p class="drag-hint">${icon('trophy', 'sm')} Drag a card up to lock it in — or tap to choose instantly</p>`;
+    body = `<ul class="rpg-menu" id="rpgMenu">${step.options.map((o, i) => `<li class="rpg-item" data-i="${i}"><span class="cursor">▶</span>${o.label}</li>`).join('')}</ul>`;
   } else if (step.type === 'multiselect') {
     body = `<div class="tile-grid">${step.options.map((o, i) => `<button class="tile" data-i="${i}"><em>${o.icon}</em><b>${o.label}</b></button>`).join('')}</div>
     <div class="tray" id="tray">${Array.from({ length: step.target }).map(() => '<i class="tray-slot"></i>').join('')}</div>
@@ -609,14 +585,22 @@ function renderStep(step) {
   }
   const keysHud = step.key.startsWith('escape-')
     ? `<div class="keys-hud">${[0, 1, 2, 3].map(i => `<i class="${state.keys.has(i) ? 'won' : ''}">🔑</i>`).join('')}</div>` : '';
+  const speaker = speakerFor(step);
   return `<section class="step chapter-step">
     ${stepVisual(step)}
     <div class="step-body">
       <p class="eyebrow">${step.kicker}</p>
       ${keysHud}
       <h2>${step.title}</h2>
-      <p class="step-copy">${step.prompt}</p>
-      ${body}
+      <div class="dialogue-box rpg-panel" id="dialogueBox">
+        <div class="dlg-portrait" style="--pc:${speaker.color}">${icon(speaker.iconId, 'lg')}</div>
+        <div class="dlg-text">
+          <b class="dlg-name" style="color:${speaker.color}">${speaker.name}</b>
+          <p class="dlg-line" id="dlgLine"></p>
+          <span class="dlg-next" id="dlgNext">▼</span>
+        </div>
+      </div>
+      <div class="action-area rpg-panel" id="actionArea" hidden>${body}</div>
     </div>
   </section>`;
 }
@@ -682,7 +666,7 @@ function updateNav() {
   $('#chapter').textContent =
     state.view === 'welcome' ? 'Your adventure awaits' :
     state.view === 'avatar' ? 'Choose your emblem' :
-    state.view === 'hub' ? 'Choose a world' :
+    state.view === 'hub' ? 'Exploring the galaxy' :
     state.view === 'intro' ? `Entering ${QUEST[state.currentDomain].title}` :
     state.view === 'report' ? 'Adventure complete' :
     `${QUEST[state.currentDomain].title} · ${state.stepInDomain + 1} of ${QUEST[state.currentDomain].steps.length}`;
@@ -694,6 +678,8 @@ function updateNav() {
 
 function transitionTo(renderFn) {
   const app = $('#app');
+  clearActiveKeyHandler();
+  stopOverworld();
   app.classList.add('portal-out');
   setTimeout(() => {
     app.innerHTML = renderFn();
@@ -708,7 +694,7 @@ function transitionTo(renderFn) {
 
 function showWelcome() { state.view = 'welcome'; transitionTo(renderWelcome); }
 function showAvatarPicker() { state.view = 'avatar'; transitionTo(renderAvatarPicker); }
-function showHub() { state.view = 'hub'; state.currentDomain = null; transitionTo(renderHub); }
+function showHub() { state.view = 'hub'; state.currentDomain = null; transitionTo(renderOverworld); }
 function enterDomain(di) {
   if (isDomainDone(di)) return;
   state.currentDomain = di; state.stepInDomain = 0; state.view = 'intro';
@@ -754,7 +740,7 @@ function finishStep(xp, subtitle) {
 function bindEvents() {
   if (state.view === 'welcome') { $('#begin')?.addEventListener('click', showAvatarPicker); return; }
   if (state.view === 'avatar') { bindAvatarEvents(); return; }
-  if (state.view === 'hub') { bindHubEvents(); return; }
+  if (state.view === 'hub') { bindOverworldEvents(); return; }
   if (state.view === 'intro') { $('.intro-step')?.addEventListener('click', skipIntro); return; }
   if (state.view === 'report') { bindReportEvents(); return; }
   bindStepEvents(currentStepObj());
@@ -772,11 +758,16 @@ function bindAvatarEvents() {
   });
 }
 
-function bindHubEvents() {
-  $$('.hub-card').forEach(btn => {
-    if (btn.classList.contains('done')) return;
-    wireTilt(btn);
-    btn.addEventListener('click', () => enterDomain(+btn.dataset.domain));
+function bindOverworldEvents() {
+  mountWorld3D();
+  $$('#owpControls button').forEach(btn => {
+    const dir = btn.dataset.dir;
+    const on = ev => { ev.preventDefault(); window.QuestWorld3D?.setMove(dir, true); };
+    const off = () => { window.QuestWorld3D?.setMove(dir, false); };
+    btn.addEventListener('pointerdown', on);
+    btn.addEventListener('pointerup', off);
+    btn.addEventListener('pointerleave', off);
+    btn.addEventListener('pointercancel', off);
   });
   $('#see-report')?.addEventListener('click', () => showReport(false));
 }
@@ -786,18 +777,53 @@ function bindReportEvents() {
 }
 
 function bindStepEvents(step) {
+  const box = $('#dialogueBox');
+  const lineEl = $('#dlgLine');
+  const nextEl = $('#dlgNext');
+  const actionArea = $('#actionArea');
+  let typing = true, advanced = false;
+  nextEl.style.opacity = '0';
+  const skip = typewriter(lineEl, step.prompt, () => { typing = false; nextEl.style.opacity = '1'; });
+  box.addEventListener('click', () => {
+    if (typing) { skip(); return; }
+    if (advanced) return;
+    advanced = true;
+    box.classList.add('done');
+    actionArea.hidden = false;
+    actionArea.classList.add('reveal-in');
+    bindActionEvents(step);
+  });
+}
+
+function bindActionEvents(step) {
   if (step.type === 'choice') {
-    $$('.opt').forEach(btn => {
-      const option = step.options[+btn.dataset.i];
-      wireChoiceCard(btn, () => {
-        recordTags(option.tags); recordCareer(option.career);
-        if (step.key.startsWith('escape-')) {
-          const roomIdx = ['escape-1', 'escape-2', 'escape-3', 'escape-4'].indexOf(step.key);
-          if (option.correct) state.keys.add(roomIdx);
-        }
-        finishStep(10, option.correct === true ? 'Nailed it!' : option.correct === false ? 'Nice try!' : 'Choice recorded');
-      });
+    const items = $$('.rpg-item');
+    let sel = 0, locked = false;
+    const highlight = () => items.forEach((li, i) => li.classList.toggle('active', i === sel));
+    highlight();
+    const confirm = i => {
+      if (locked) return;
+      locked = true;
+      const option = step.options[i];
+      recordTags(option.tags); recordCareer(option.career);
+      if (step.key.startsWith('escape-')) {
+        const roomIdx = ['escape-1', 'escape-2', 'escape-3', 'escape-4'].indexOf(step.key);
+        if (option.correct) state.keys.add(roomIdx);
+      }
+      items[i].classList.add('confirmed');
+      playTone(880, .1);
+      setTimeout(() => finishStep(10, option.correct === true ? 'Nailed it!' : option.correct === false ? 'Nice try!' : 'Choice recorded'), 200);
+    };
+    items.forEach((li, i) => {
+      li.addEventListener('mouseenter', () => { sel = i; highlight(); });
+      li.addEventListener('click', () => confirm(i));
     });
+    activeKeyHandler = e => {
+      if (e.key === 'ArrowDown') { sel = (sel + 1) % items.length; highlight(); playTone(740, .03); }
+      else if (e.key === 'ArrowUp') { sel = (sel - 1 + items.length) % items.length; highlight(); playTone(740, .03); }
+      else if (e.key === 'Enter' || e.key === ' ') { confirm(sel); }
+    };
+    document.addEventListener('keydown', activeKeyHandler);
   }
   if (step.type === 'multiselect') {
     const selected = [];
